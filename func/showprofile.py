@@ -1,4 +1,4 @@
-@bot.message_handler(commands=['editprofile'])
+@bot.message_handler(commands=['showprofile'])
 def showProfile(message):
     tID = message.chat.id
     bot.send_message(tID, "Информация из профиля:")
