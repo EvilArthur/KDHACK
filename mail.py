@@ -3,13 +3,16 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from config import from_email, password
 from platform import python_version
+from jinja2 import Template
 
 
-def mail_out(to_email):
+def mail_out(to_email, parent_name, patronymic, child_second_name, child_name, club_name, club_cost, geolocation):
     msg = MIMEMultipart('alternative')
     with open('emailHTML/html.html', 'r', encoding="utf-8") as f:
         html = f.read()
         f.close()
+    html = Template(html).render(parent_name=parent_name, patronymic=patronymic, child_second_name=child_second_name, child_name=child_name,
+                    club_name=club_name, club_cost= club_cost, geolocation=geolocation)
     message = 'Сообщение сделано при помощи python'
     msg['To'] = to_email
     msg['Subject'] = 'Тема письма'
@@ -30,4 +33,5 @@ def mail_out(to_email):
 
 
 if __name__ == "__main__":
-    mail_out('l0tus0rb@yandex.ru')
+
+    mail_out('l0tus0rb@yandex.ru', 'Татьяна', 'Викторовна', 'Сулейманов', 'Артур', 'Яндекс.Лицей', '0', 'Ул. Пушкина')
