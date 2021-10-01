@@ -7,7 +7,9 @@ from platform import python_version
 
 def mail_out(to_email):
     msg = MIMEMultipart('alternative')
-
+    with open('emailHTML/html.html', 'r', encoding="utf-8") as f:
+        html = f.read()
+        f.close()
     message = 'Сообщение сделано при помощи python'
     msg['To'] = to_email
     msg['Subject'] = 'Тема письма'
@@ -17,7 +19,6 @@ def mail_out(to_email):
     msg['X-Mailer'] = 'Python/' + (python_version())
 
 
-    html = '<html><head></head><body><p>' + message + '</p></body></html>'
     msg.attach(MIMEText(message, 'plain'))
     msg.attach(MIMEText(html, 'html'))
 
