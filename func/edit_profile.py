@@ -1,5 +1,5 @@
 @bot.message_handler(commands=['edit_profile'])
-def showProfile(message):
+def handle_edit_profile(message):
     tID = message.chat.id
     bot.send_message(tID, "Данные из профиля:")
     with connection.cursor() as cursor:
@@ -121,11 +121,15 @@ def commit_parent_name(message):
 def commit_parent_email (message):
     tID = message.chat.id
     data = message.text
-    with connection.cursor() as cursor:
-            cursor.execute("update users set parent_email = \"" +
-                           data + "\" where tID = \"" + str(tID) + "\"")
-            connection.commit()
-    bot.send_message(tID, "Электронная почта твоего родителя обновлена")
+    if validate_email(data, check_mx=True):
+        with connection.cursor() as cursor:
+                cursor.execute("update users set parent_email = \"" +
+                               data + "\" where tID = \"" + str(tID) + "\"")
+                connection.commit()
+        bot.send_message(tID, "Электронная почта твоего родителя обновлена")
+    else:
+        msg = bot.send_message(tID, incorrect_input_text)
+        bot.register_next_step_handler(msg, commit_parent_email)
     # ПРОВЕРКА ПОЧТЫ
 
 def commit_categories(message):
