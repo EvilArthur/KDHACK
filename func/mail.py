@@ -16,7 +16,7 @@ def mail_out(to_email, parent_name, patronymic, child_second_name, child_name, c
     message = 'Сообщение сделано при помощи python'
     msg['To'] = to_email
     msg['Subject'] = 'Запрос ребёнка на посещение внеурочной деятельности'
-    msg['From'] = 'no_reply_gosuslugiDeti <KDhack2021@yandex.ru>'
+    msg['From'] = f'GosuslugiDeti <{from_email}>'
     msg['Reply-To'] = from_email
     msg['Return-Path'] = from_email
     msg['X-Mailer'] = 'Python/' + (python_version())
@@ -30,6 +30,7 @@ def mail_out(to_email, parent_name, patronymic, child_second_name, child_name, c
     server.login(from_email, password)
     server.sendmail(from_email, to_email, msg.as_string())
     server.quit()
+    print('Письмо отправленно')
 
 
 if __name__ == "__main__":

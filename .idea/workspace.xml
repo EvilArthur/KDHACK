@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3853d842-196a-4f54-8351-3bfebedf003b" name="Default Changelist" comment="Fibal version">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_10_2021_12_42__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_10_2021_12_42__Default_Changelist_.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/func/keyboards.py" beforeDir="false" afterPath="$PROJECT_DIR$/func/keyboards.py" afterDir="false" />
-    </list>
+    <list default="true" id="3853d842-196a-4f54-8351-3bfebedf003b" name="Default Changelist" comment="added emoji" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -302,7 +298,14 @@
       <option name="project" value="LOCAL" />
       <updated>1633171533588</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="added emoji">
+      <created>1633173695684</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1633173695684</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -334,6 +337,7 @@
     <MESSAGE value="init" />
     <MESSAGE value="final'очка (пока)" />
     <MESSAGE value="Fibal version" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fibal version" />
+    <MESSAGE value="added emoji" />
+    <option name="LAST_COMMIT_MESSAGE" value="added emoji" />
   </component>
 </project>
