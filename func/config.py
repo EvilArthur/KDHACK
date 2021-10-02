@@ -1,2 +1,2 @@
 password = 'gosuslugideti_'
-from_email = 'gosuslugideti'
+from_email = 'gosuslugideti@yandex.ru'

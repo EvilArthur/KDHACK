@@ -641,6 +641,8 @@ def commit_location(message):
                        str(posX) + "\" where tID = \"" + str(tID) + "\"")
         cursor.execute("update users set posY = \"" +
                        str(posY) + "\" where tID = \"" + str(tID) + "\"")
+        cursor.execute("update users set parent_phone = \"" +
+                       str(0) + "\" where tID = \"" + str(tID) + "\"")
         connection.commit()
     bot.send_message(tID, "Твоё местоположение обновлено")
 
