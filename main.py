@@ -40,40 +40,42 @@ def checkDate(date):
 # обработка callback от кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
-    if call.data == Callback_data[6]:
+    if call.data == Callback_data[0]:
+        handle_show(call.message, filtering(1)) # фильтр спорт
+    elif call.data == Callback_data[1]:
+        handle_show(call.message, filtering(2)) # фильтр программирование
+    elif call.data == Callback_data[2]:
+        handle_show(call.message, filtering(3)) # фильтр рисование
+    elif call.data == Callback_data[3]:
+        handle_show(call.message, filtering(4)) # фильтр шахматы
+    elif call.data == Callback_data[4]:
+        handle_show(call.message, filtering(5)) # фильтр музыка
+    elif call.data == Callback_data[6]: # вывести все кружки
         with connection.cursor() as cur:
             cur.execute('select * from clubs')
             dt = cur.fetchall()
         handle_show(call.message, dt)
-    elif call.data == Callback_data[7]:
+    elif call.data == Callback_data[7]: # фильтрация запуск
         handle_filter(call.message)
-    elif call.data == Callback_data[8]:
+    elif call.data == Callback_data[8]: # вывод кружков
         handle_show(call.message, sorting(1))
-    elif call.data == Callback_data[9]:
+    elif call.data == Callback_data[9]: # сортированный вывод кружков
         with connection.cursor() as cur:
             cur.execute('select * from users where tId = {}'.format(str(call.message.chat.id)))
             dt = cur.fetchall()
         handle_show(call.message, sorting([dt[0][11], dt[0][12]]))
-    elif call.data == Callback_data[10]:
+    elif call.data == Callback_data[10]: # фильтр типов
         handle_filter_types(call.message)
-    elif call.data == Callback_data[0]:
-        print('Отфильтровано по типу(спорт)')
-    elif call.data == Callback_data[1]:
-        print('Отфильтровано по типу(программирование)')
-    elif call.data == Callback_data[2]:
-        print('Отфильтровано по типу(рисование)')
-    elif call.data == Callback_data[3]:
-        print('Отфильтровано по типу(шахматы)')
-    elif call.data == Callback_data[4]:
-        print('Отфильтровано по типу(музыка)')
-    elif call.data == Callback_data[13]:
+    elif call.data == Callback_data[13]: # отправить сообщение родителям
         handle_sent_mail(call.message)
-    elif call.data == Callback_data[14]:
+    elif call.data == Callback_data[14]: # меню
         handle_menu(call.message)
-    elif call.data == Callback_data[15]:
+    elif call.data == Callback_data[15]: # показать профиль
         handle_show_profile(call.message)
-    elif call.data == Callback_data[16]:
+    elif call.data == Callback_data[16]: # редактировать профиль
         handle_edit_profile(call.message)
+    elif call.data == Callback_data[17]: # фильтр по увлечениям
+        pass
 
 
 # функции
@@ -110,9 +112,6 @@ def handle_sent_mail(message):
     with connection.cursor() as cur:
         cur.execute('select parent_email, parent_lastname, parent_patronymic, kid_lastname, kid_firstname from users where tID = {}'.format(message.chat.id))
         mail_data = cur.fetchall()
-    with connection.cursor() as cur:
-        cur.execute('select ')
-    print(mail_data)
     bot.send_message(message.chat.id, text='Информация о выбранном тобой кружке отправлена родителю. Удачи на занятиях!')
     mail_out(mail_data[0][0], mail_data[0][1], mail_data[0][2], mail_data[0][4], mail_data[0][3], "тестовое имя", "тестовая цена", "тестовая локация")
     handle_menu(message)
@@ -137,6 +136,13 @@ def sorting(tag):
         data = sorted(data, key=lambda x: x[tag])
     else:
         data = sorted(data, key=lambda x: distance_calc(x[2], x[3], tag[0], tag[1]))
+    return data
+
+
+def filtering(num):
+    with connection.cursor() as cur:
+        cur.execute(f'select * from clubs where category = {str(num)}')
+        data = cur.fetchall()
     return data
 
 

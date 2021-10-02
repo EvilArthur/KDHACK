@@ -1,7 +1,7 @@
 from telebot import types
 Callback_data = ['Sport', 'Programming', 'Drawing', 'Chess', 'Music', 'Apply',
                  'Show_activities', 'Filter', 'Cost', 'Most_close', 'Type',
-                 'Yes', 'No', 'Write', 'Back', 'show_profile', 'edit_profile']
+                 'Yes', 'No', 'Write', 'Back', 'show_profile', 'edit_profile', 'quiz']
 
 
 def take_keyboard(num):
@@ -26,7 +26,8 @@ def take_keyboard(num):
         b1 = types.InlineKeyboardButton(text='По стоимости', callback_data=Callback_data[8])
         b2 = types.InlineKeyboardButton(text='По расстоянию', callback_data=Callback_data[9])
         b3 = types.InlineKeyboardButton(text='По интересам', callback_data=Callback_data[10])
-        keyboard = types.InlineKeyboardMarkup([[b1], [b2], [b3]])
+        b4 = types.InlineKeyboardButton(text='По твоим увлечениям', callback_data=Callback_data[17])
+        keyboard = types.InlineKeyboardMarkup([[b1], [b2], [b3], [b4]])
     elif num == 'o1':
         b1 = types.InlineKeyboardButton(text='Записаться', callback_data=Callback_data[13])
         b2 = types.InlineKeyboardButton(text='Назад', callback_data=Callback_data[14])
