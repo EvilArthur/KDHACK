@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3853d842-196a-4f54-8351-3bfebedf003b" name="Default Changelist" comment="added emoji and debugged email again">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="3853d842-196a-4f54-8351-3bfebedf003b" name="Default Changelist" comment="debugged html">
       <change beforePath="$PROJECT_DIR$/func/main.html" beforeDir="false" afterPath="$PROJECT_DIR$/func/main.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -322,7 +321,14 @@
       <option name="project" value="LOCAL" />
       <updated>1633175488264</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="debugged html">
+      <created>1633176113733</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1633176113733</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -357,6 +363,7 @@
     <MESSAGE value="added emoji" />
     <MESSAGE value="added emoji and debugged email" />
     <MESSAGE value="added emoji and debugged email again" />
-    <option name="LAST_COMMIT_MESSAGE" value="added emoji and debugged email again" />
+    <MESSAGE value="debugged html" />
+    <option name="LAST_COMMIT_MESSAGE" value="debugged html" />
   </component>
 </project>
