@@ -36,4 +36,12 @@ def take_keyboard(num):
         b1 = types.InlineKeyboardButton(text='Редактирование профиля', callback_data=Callback_data[16])
         b2 = types.InlineKeyboardButton(text='Назад', callback_data=Callback_data[14])
         keyboard = types.InlineKeyboardButton([[b1], [b2]])
+    elif num == 'f3':
+        b1 = types.InlineKeyboardButton(text='По стоимости', callback_data=Callback_data[8])
+        b2 = types.InlineKeyboardButton(text='По расстоянию', callback_data=Callback_data[9])
+        b3 = types.InlineKeyboardButton(text='По интересам', callback_data=Callback_data[10])
+        keyboard = types.InlineKeyboardMarkup([[b1], [b2], [b3]])
+    elif num == 'm1':
+        b1 = types.InlineKeyboardButton(text='Меню', callback_data=Callback_data[14])
+        keyboard = types.InlineKeyboardMarkup([[b1]])
     return keyboard

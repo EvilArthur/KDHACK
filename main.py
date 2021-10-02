@@ -1,6 +1,5 @@
 import telebot
 from func.take_base import take_base_clubs
-from func.check_user import check_user_mail
 from func.sorting import sorting
 from func.take_info_clubs import take_info_clubs
 from func.mail import mail_out
@@ -36,6 +35,12 @@ def checkDate(date):
             int(data[2]) in range(2004, 2019):
         return True
 
+'''
+def delete_message(message_id, chat_id):
+    return delete_message(chat_id, message_id)
+'''
+
+
 
 # обработка callback от кнопок
 @bot.callback_query_handler(func=lambda call: True)
@@ -68,7 +73,10 @@ def callback(call):
         handle_filter_types(call.message)
     elif call.data == Callback_data[13]: # отправить сообщение родителям
         handle_sent_mail(call.message)
-    elif call.data == Callback_data[14]: # меню
+    elif call.data == Callback_data[14]: # назад в меню
+        with connection.cursor() as cur:
+            cur.execute(f'update users set parent_phone = null where tID = ({call.message.chat.id})')
+            connection.commit()
         handle_menu(call.message)
     elif call.data == Callback_data[15]: # показать профиль
         handle_show_profile(call.message)
@@ -110,12 +118,20 @@ def handle_show(message, data):
 @bot.message_handler(commands=['sent_mail'])
 def handle_sent_mail(message):
     with connection.cursor() as cur:
-        cur.execute('select parent_email, parent_lastname, parent_patronymic, kid_lastname, kid_firstname from users where tID = {}'.format(message.chat.id))
+        cur.execute('select parent_email, parent_lastname, parent_patronymic, kid_lastname, kid_firstname, parent_phone, '
+                    'posX, posY from users where tID = {}'.format(message.chat.id))
         mail_data = cur.fetchall()
-    bot.send_message(message.chat.id, text='Информация о выбранном тобой кружке отправлена родителю. Удачи на занятиях!')
-    mail_out(mail_data[0][0], mail_data[0][1], mail_data[0][2], mail_data[0][4], mail_data[0][3], "тестовое имя", "тестовая цена", "тестовая локация")
-    handle_menu(message)
-
+    with connection.cursor() as cur:
+        cur.execute('select * from clubs')
+        data = cur.fetchall()
+    try:
+        data = data[int(mail_data[0][5]) - 1]
+        bot.send_message(message.chat.id, text='Информация о выбранном тобой кружке отправлена родителю. Удачи на занятиях!')
+        mail_out(mail_data[0][0], mail_data[0][1], mail_data[0][2], mail_data[0][4], mail_data[0][3], data[0],
+                data[1], distance_calc(mail_data[0][6], mail_data[0][7], data[2], data[3]))
+        handle_menu(message)
+    except Exception:
+        print('Не удалось')
 
 # фильтрация
 @bot.message_handler(commands=['filter_types'])
@@ -125,7 +141,14 @@ def handle_filter_types(message):
 
 @bot.message_handler(commands=['filter'])
 def handle_filter(message):
-    bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f2'))
+    with connection.cursor() as cur:
+        cur.execute(f'select categories from users where tId = "{message.chat.id}"')
+        data = cur.fetchall()
+    print(data[0][0])
+    if data[0][0] != None:
+        bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f2'))
+    else:
+        bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f3'))
 
 
 def sorting(tag):
@@ -138,7 +161,10 @@ def sorting(tag):
         with connection.cursor() as cur:
             cur.execute(f'select * from users where tID = {tag}')
             db_info = cur.fetchall()
-        intrests = list(db_info[0][13])
+        try:
+            intrests = list(db_info[0][13])
+        except Exception:
+            pass
         for i in range(len(data)):
             if data[i][5] not in intrests:
                 t = data[i]
@@ -167,14 +193,16 @@ def handle_start(message):
         with connection.cursor() as cursor:
             cursor.execute("insert into users (tID) VALUES (\"" + str(tID) + "\")")
             connection.commit()
-        bot.send_message(tID, "Привет! Добро пожаловать в Госуслуги Дети! Здесь ты сможешь найти кружок или секцию по своим предпочтениям")
+        bot.send_message(tID, "Привет! Добро пожаловать в Госуслуги Дети! "
+                              "Здесь ты сможешь найти кружок или секцию по своим предпочтениям")
         bot.send_message(
             tID, "Чтобы я помог тебе, мне нужно узнать немного инфрормации о тебе")
         msg = bot.send_message(
             tID, "Напиши свою фамилию, имя и отчество через пробел")
         bot.register_next_step_handler(msg, input_name)
     else:
-        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) на Госуслугах Дети.\nНапиши /menu")
+        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) на Госуслугах Дети. Перейди в меню!",
+                         reply_markup=take_keyboard('m1'))
 
 
 def input_name(message):
@@ -286,6 +314,7 @@ def get_location(message):
     data= str(message.location)
     posX = data[14:23]
     posY = data[37:45]
+    posX, posY = posX.strip(","), posY.strip(",")
     with connection.cursor() as cursor:
             cursor.execute("update users set posX = \"" +
                            str(posX) + "\" where tID = \"" + str(tID) + "\"")
@@ -305,13 +334,14 @@ def start_quiz(message):
     with connection.cursor() as cursor:
         cursor.execute("select kid_firstname, kid_lastname, categories from users where tID = \"" + str(tID) + "\"")
         data = cursor.fetchall()
-    if data[0][2] != "":
-        bot.send_message(tID, data[0][1] +", ты уже ответил(а) на вопросы, напиши /menu")
-    elif not data[0][2]:
-        bot.send_message(tID, "Давай узнаем о твоих увлечениях. Отвечай \"да\" или \"нет\"")
-        msg = bot.send_message(tID, "Любишь заниматься спортом?")
-        bot.register_next_step_handler(msg, pick_sport)
-    else:
+    try:
+        if not data[0][2]:
+            bot.send_message(tID, "Давай узнаем о твоих увлечениях. Отвечай \"да\" или \"нет\"")
+            msg = bot.send_message(tID, "Любишь заниматься спортом?")
+            bot.register_next_step_handler(msg, pick_sport)
+        elif data[0][2]:
+            bot.send_message(tID, data[0][1] + ", ты уже ответил(а) на вопросы, напиши /menu")
+    except Exception:
         bot.send_message(tID, "Ты ещё не зарегистрирован в ГосУслугах Дети, напиши /start")
 
 def pick_sport(message):
@@ -407,24 +437,25 @@ def handle_show_profile(message):
     with connection.cursor() as cursor:
         cursor.execute("select * from users where tID = \"" + str(tID) + "\"")
         data = cursor.fetchall()
-    if data:
-        bot.send_message(tID, "Информация из профиля:")
-        dict = {"1": ", Спорт", "2": ", Технологии IT", "3": ", Рисование", "4": ", Шахматы", "5": ", Музыка"}
-        cat = ""
-        for a in data[0][13]:
-            cat = cat + dict[a]
-
-        info_pro = "Твоё ФИО: " + str(data[0][0]) + " " + str(data[0][1]) + " " + data[0][2] + "\n" + \
-        "Твоя дата рождения: " + data[0][10] + "\n" + \
-        "Номер сертификата ПФДО: " + data[0][9] + "\n" + \
-        "ФИО Родителя: " + str(data[0][3]) + " " + str(data[0][4]) + " " + data[0][5] + "\n" + \
-        "Электронная почта: " + data[0][8] + "\n" + \
-        "Твои интересы: " + cat[2:] + \
-        "\nДля редактирования напиши /editprofile"
-        bot.send_message(message.chat.id, text=info_pro)
-    else:
-        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
-
+        if data:
+            bot.send_message(tID, "Информация из профиля:")
+            dict = {"1": ", Спорт", "2": ", Технологии IT", "3": ", Рисование", "4": ", Шахматы", "5": ", Музыка"}
+            cat = ""
+            try:
+                for a in data[0][13]:
+                    cat = cat + dict[a]
+            except Exception:
+                pass
+            info_pro = "Твоё ФИО: " + str(data[0][0]) + " " + str(data[0][1]) + " " + data[0][2] + "\n" + \
+            "Твоя дата рождения: " + data[0][10] + "\n" + \
+            "Номер сертификата ПФДО: " + data[0][9] + "\n" + \
+            "ФИО Родителя: " + str(data[0][3]) + " " + str(data[0][4]) + " " + data[0][5] + "\n" + \
+            "Электронная почта: " + data[0][8] + "\n" + \
+            "Твои интересы: " + cat[2:] + \
+            "\nДля редактирования напиши /editprofile"
+            bot.send_message(message.chat.id, text=info_pro)
+        else:
+            bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
 
 @bot.message_handler(commands=['editprofile'])
 def handle_edit_profile(message):
@@ -436,24 +467,29 @@ def handle_edit_profile(message):
         bot.send_message(tID, "Данные из профиля:")
         dict = {"1":", Спорт", "2":", Технологии IT","3":", Рисование","4":", Шахматы","5":", Музыка"}
         cat = ""
-        for a in data[0][13]:
-            cat = cat + dict[a]
+        try:
+            for a in data[0][13]:
+                cat = cat + dict[a]
+        except Exception:
+            pass
         info = "1. Твоё ФИО: " + str(data[0][0]) + " " + str(data[0][1]) + " " + data[0][2] + "\n" + \
             "2. Твоя дата рождения: " + data[0][10] + "\n" + \
             "3. Номер сертификата ПФДО: " + data[0][9] + "\n" + \
             "4. ФИО Родителя: " + str(data[0][3]) + " " + str(data[0][4]) + " " + data[0][5] + "\n" + \
             "5. Электронная почта: " + data[0][8] + "\n" + \
-            "6. Твои интересы: " + cat[2:]
+            "6. Твои интересы: " + cat[2:] + '\n' + \
+            '7. Моё местоположение'
         bot.send_message(tID, info)
         msg = bot.send_message(tID, "Выбери номер строки, которую хочешь изменить")
         bot.register_next_step_handler(msg, pick_line)
     else:
         bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
 
+
 def pick_line(message):
     tID = message.chat.id
     num = message.text
-    if num.isdigit() and len(num) == 1 and int(num) in range(1,7):
+    if num.isdigit() and len(num) == 1 and int(num) in range(1,8):
         num = int(num)
         if num == 1:
             msg = bot.send_message(tID, "Введи свою фамилию, имя и отчество через пробел")
@@ -476,9 +512,14 @@ def pick_line(message):
         elif num == 6:
             msg = bot.send_message(tID, "Введи цифры направлений, которые тебе интересны, например, 124\n1. Спорт\n2. Технологии IT\n3. Рисование\n4. Шахматы\n5. Музыка")
             bot.register_next_step_handler(msg, commit_categories)
+
+        elif num == 7:
+            msg = bot.send_message(tID, "Отправь своё новое местоположение")
+            bot.register_next_step_handler(msg, commit_location)
         else:
             msg = bot.send_message(tID, incorrect_input_text)
             bot.register_next_step_handler(msg, pick_line)
+
 
 def commit_kid_name(message):
     tID = message.chat.id
@@ -498,6 +539,8 @@ def commit_kid_name(message):
 
         bot.send_message(
             tID, "Твоё ФИО успешно обновлено")
+    handle_menu(message)
+
 
 def commit_birth_date(message):
     tID = message.chat.id
@@ -511,6 +554,8 @@ def commit_birth_date(message):
     else:
         msg = bot.send_message(tID, incorrect_input_text)
         bot.register_next_step_handler(msg, commit_birth_date)
+    handle_menu(message)
+
 
 def commit_pfdo_num(message):
     tID = message.chat.id
@@ -530,6 +575,8 @@ def commit_pfdo_num(message):
     else:
         msg = bot.send_message(tID, incorrect_input_text)
         bot.register_next_step_handler(msg, commit_pfdo_num)
+    handle_menu(message)
+
 
 def commit_parent_name(message):
     tID = message.chat.id
@@ -548,15 +595,22 @@ def commit_parent_name(message):
             connection.commit()
         bot.send_message(tID, "ФИО твоего родителя обновлено")
 
+
 def commit_parent_email (message):
     tID = message.chat.id
     data = message.text
-    with connection.cursor() as cursor:
-            cursor.execute("update users set parent_email = \"" +
-                           data + "\" where tID = \"" + str(tID) + "\"")
-            connection.commit()
-    bot.send_message(tID, "Электронная почта твоего родителя обновлена")
+    if validate_email(data, check_mx=True):
+        with connection.cursor() as cursor:
+                cursor.execute("update users set parent_email = \"" +
+                               data + "\" where tID = \"" + str(tID) + "\"")
+                connection.commit()
+        bot.send_message(tID, "Электронная почта твоего родителя обновлена")
+    else:
+        msg = bot.send_message(tID, incorrect_input_text)
+        bot.register_next_step_handler(msg, commit_parent_email)
     # ПРОВЕРКА ПОЧТЫ
+    handle_menu(message)
+
 
 def commit_categories(message):
     tID = message.chat.id
@@ -568,8 +622,22 @@ def commit_categories(message):
         with connection.cursor() as cursor:
             cursor.execute("update users set categories = \"" +
                             data + "\" where tID = \"" + str(tID) + "\"")
-            connection.commit
+            connection.commit()
         bot.send_message(tID, "Твой список интересов обновлён")
+        handle_menu(message)
+@bot.message_handler(content_types=['location'])
+def commit_location(message):
+    tID = message.chat.id
+    data = str(message.location)
+    posX = data[14:23]
+    posY = data[37:45]
+    with connection.cursor() as cursor:
+        cursor.execute("update users set posX = \"" +
+                       str(posX) + "\" where tID = \"" + str(tID) + "\"")
+        cursor.execute("update users set posY = \"" +
+                       str(posY) + "\" where tID = \"" + str(tID) + "\"")
+        connection.commit()
+    bot.send_message(tID, "Твоё местоположение обновлено")
 
 
 # контроль ввода

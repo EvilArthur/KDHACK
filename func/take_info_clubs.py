@@ -11,6 +11,9 @@ def take_info_clubs(id, num):
         password="1111"
 
     )
+    with connection.cursor() as cur:
+        cur.execute(f'update users set parent_phone = "{num}" where tID = ("{id}")')
+        connection.commit()
     with connection.cursor() as cursor:
         cursor.execute("select * from users where tID = {}".format(id))
         data_user = cursor.fetchall()
