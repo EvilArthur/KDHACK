@@ -144,7 +144,6 @@ def handle_filter(message):
     with connection.cursor() as cur:
         cur.execute(f'select categories from users where tId = "{message.chat.id}"')
         data = cur.fetchall()
-    #print(data[0][0])
     if data[0][0] != None:
         bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f2'))
     else:

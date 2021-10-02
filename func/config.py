@@ -1,2 +1,2 @@
-password = 'gosuslugideti_'
-from_email = 'gosuslugideti@yandex.ru'
+password = 'gosuslugikids_'
+from_email = 'gosuslugikids@yandex.ru'
