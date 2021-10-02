@@ -75,7 +75,7 @@ def callback(call):
     elif call.data == Callback_data[16]: # редактировать профиль
         handle_edit_profile(call.message)
     elif call.data == Callback_data[17]: # фильтр по увлечениям
-        pass
+        handle_show(call.message, sorting(call.message.chat.id))
 
 
 # функции
@@ -131,9 +131,19 @@ def handle_filter(message):
 def sorting(tag):
     with connection.cursor() as cur:
         cur.execute('select * from clubs')
-        data = cur.fetchall()
+        data = list(cur.fetchall())
     if tag == 1:
         data = sorted(data, key=lambda x: x[tag])
+    elif type(tag) == int:
+        with connection.cursor() as cur:
+            cur.execute(f'select * from users where tID = {tag}')
+            db_info = cur.fetchall()
+        intrests = list(db_info[0][13])
+        for i in range(len(data)):
+            if data[i][5] not in intrests:
+                t = data[i]
+                del data[i]
+                data.append(t)
     else:
         data = sorted(data, key=lambda x: distance_calc(x[2], x[3], tag[0], tag[1]))
     return data
