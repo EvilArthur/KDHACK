@@ -1,4 +1,4 @@
-from geoloc import distance_calc
+from func.geoloc import distance_calc
 
 global all_activities, user_info, demands
 

@@ -1,26 +1,15 @@
 import telebot
-from func.take_base import take_base_clubs
-from func.check_user import check_user_mail
-from func.sorting import sorting
-from func.take_info_clubs import take_info_clubs
-from func.mail import mail_out
-from func.geoloc import distance_calc
-from settings import TOKEN
-from func.keyboards import take_keyboard, Callback_data
 import pymysql
+bot = telebot.TeleBot("2018040395:AAHBdge6sSyCvSFM9mmzn1y4wrmKXbDhXmA")
 
-# запуск бота
 connection = pymysql.connect(
     host="localhost",
     user="root",
-    password="1111",
+    password="0914kd",
     database="botDB"
 )
-incorrect_input_text = "Упс, кажется ты ввел(а) что-то не так. Попробуй ещё раз"
-already_registered_text = ", ты уже зарегистрирован(а) на Госуслугах Дети"
-bot = telebot.TeleBot(TOKEN)
 
-# проверка
+
 def checkName(name):
     if len(name.split(' ')) == 3 and len(name.split(" ")[0]) > 1 and len(name.split(" ")[1]) > 1 and len(name.split(" ")[2]) > 1:
         return True
@@ -36,103 +25,6 @@ def checkDate(date):
         return True
 
 
-# обработка callback от кнопок
-@bot.callback_query_handler(func=lambda call: True)
-def test_callback(call):
-    if call.data == Callback_data[6]:
-        with connection.cursor() as cur:
-            cur.execute('select * from clubs')
-            dt = cur.fetchall()
-        handle_show(call.message, dt)
-    elif call.data == Callback_data[7]:
-        handle_filter(call.message)
-    elif call.data == Callback_data[8]:
-        handle_show(call.message, sorting(1))
-    elif call.data == Callback_data[9]:
-        with connection.cursor() as cur:
-            cur.execute('select * from users where tId = {}'.format(str(call.message.chat.id)))
-            dt = cur.fetchall()
-        handle_show(call.message, sorting([dt[0][11], dt[0][12]]))
-    elif call.data == Callback_data[10]:
-        handle_filter_types(call.message)
-    elif call.data == Callback_data[0]:
-        print('Отфильтровано по типу(спорт)')
-    elif call.data == Callback_data[1]:
-        print('Отфильтровано по типу(программирование)')
-    elif call.data == Callback_data[2]:
-        print('Отфильтровано по типу(рисование)')
-    elif call.data == Callback_data[3]:
-        print('Отфильтровано по типу(шахматы)')
-    elif call.data == Callback_data[4]:
-        print('Отфильтровано по типу(музыка)')
-    elif call.data == Callback_data[13]:
-        handle_sent_mail(call.message)
-    elif call.data == Callback_data[14]:
-        handle_menu(call.message)
-    elif call.data == Callback_data[15]:
-        handle_show_profile(call.message)
-    elif call.data == Callback_data[16]:
-        handle_edit_profile(call.message)
-
-
-# функции
-@bot.message_handler(commands=['menu'])
-def handle_menu(message):
-    with connection.cursor() as cur:
-        cur.execute('select kid_firstname, kid_lastname from users where tID = {}'.format(message.chat.id))
-        name = cur.fetchall()
-    bot.send_message(message.chat.id, text=('Чем займёмся на этот раз, ' + str(name[0][1]) + '?'), reply_markup=take_keyboard('0'))
-
-
-# вывод мероприятий
-@bot.message_handler(commands=['info'])
-def handle_info(message, num):
-    data = take_info_clubs(message.chat.id, int(num))
-    info = data[0]
-    bot.send_location(message.chat.id, data[1][1], data[1][0])
-    bot.send_message(message.chat.id, info, reply_markup=take_keyboard('o1'))
-
-
-def handle_show(message, data):
-    bot.send_message(message.chat.id, text=take_base_clubs(data))
-    bot.send_message(message.chat.id, text='Напиши номер кружка, чтобы получить подробную информацию и записаться')
-
-
-# запись
-@bot.message_handler(commands=['sent_mail'])
-def handle_sent_mail(message):
-    with connection.cursor() as cur:
-        cur.execute('select parent_email, parent_lastname, parent_patronymic, kid_lastname, kid_firstname from users where tID = {}'.format(message.chat.id))
-        mail_data = cur.fetchall()
-    print(mail_data)
-    bot.send_message(message.chat.id, text='Информация о выбранном тобой кружке отправлена родителю. Удачи на занятиях!')
-    mail_out(mail_data[0][0], mail_data[0][1], mail_data[0][2], mail_data[0][4], mail_data[0][3], "тестовое имя", "тестовая цена", "тестовая локация")
-    handle_menu(message)
-
-
-# фильтрация
-@bot.message_handler(commands=['filter_types'])
-def handle_filter_types(message):
-    bot.send_message(message.chat.id, text='Выберите направление кружка', reply_markup=take_keyboard('f1'))
-
-
-@bot.message_handler(commands=['filter'])
-def handle_filter(message):
-    bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f2'))
-
-
-def sorting(tag):
-    with connection.cursor() as cur:
-        cur.execute('select * from clubs')
-        data = cur.fetchall()
-    if tag == 1:
-        data = sorted(data, key=lambda x: x[tag])
-    else:
-        data = sorted(data, key=lambda x: distance_calc(x[2], x[3], tag[0], tag[1]))
-    return data
-
-
-# регистрация и тест
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     tID = message.chat.id
@@ -143,14 +35,17 @@ def handle_start(message):
         with connection.cursor() as cursor:
             cursor.execute("insert into users (tID) VALUES (\"" + str(tID) + "\")")
             connection.commit()
-        bot.send_message(tID, "Привет! Добро пожаловать в Госуслуги Дети! Здесь ты сможешь найти кружок или секцию по своим предпочтениям")
+        bot.send_message(tID, "Привет! Добро пожаловать в ГосУслуги Кидс!")
         bot.send_message(
-            tID, "Чтобы я помог тебе, мне нужно узнать немного инфрормации о тебе")
+            tID, "Здесь ты сможешь найти кружок или спортивную секцию по своим предпочтениям")
+        bot.send_message(
+            tID, "Для начала использования необходимо зарегистрироваться")
         msg = bot.send_message(
             tID, "Напиши свою фамилию, имя и отчество через пробел")
         bot.register_next_step_handler(msg, input_name)
     else:
-        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) на Госуслугах Дети.\nНапиши /menu")
+        print(data)
+        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) в ГосУслугах Кидс")
 
 
 def input_name(message):
@@ -266,6 +161,7 @@ def get_location(message):
                            str(posY) + "\" where tID = \"" + str(tID) + "\"")
             connection.commit()
     bot.send_message(tID, "Уже подбираю тебе кружки около твоего дома...")
+    time.sleep(1)
     with connection.cursor() as cursor:
         cursor.execute("select kid_firstname, kid_lastname from users where tID = \"" + str(tID) + "\"")
         data = cursor.fetchall()
@@ -328,10 +224,10 @@ def pick_painting(message):
             cursor.execute("update users set categories = CONCAT(categories,\"" +
                            "3" + "\") where tID = \"" + str(tID) + "\"")
             connection.commit()
-        msg = bot.send_message(tID, "Увлекаешься шахматами?")
+        msg = bot.send_message(tID, "Увлекаешься рисованием?")
         bot.register_next_step_handler(msg, pick_chess)
     elif answer.lower() == "нет":
-        msg = bot.send_message(tID, "Увлекаешься шахматами?")
+        msg = bot.send_message(tID, "Увлекаешься рисованием?")
         bot.register_next_step_handler(msg, pick_chess)
     else:
         msg = bot.send_message(tID, incorrect_input_text)
@@ -362,52 +258,9 @@ def pick_music(message):
             cursor.execute("update users set categories = CONCAT(categories,\"" +
                            "4" + "\") where tID = \"" + str(tID) + "\"")
         connection.commit()
-        msg = bot.send_message(tID, "Отлично, я запомнил все твои увлечения! Начинай выбирать, просто напиши /menu")
+        msg = bot.send_message(tID, "Отлично, я запомнил все твои увлечения! Начинай выбирать, просто напиши /clubs")
     elif answer.lower() == "нет":
-        msg = bot.send_message(tID, "Отлично, я запомнил все твои увлечения! Начинай выбирать, просто напиши /menu")
+        msg = bot.send_message(tID, "Отлично, я запомнил все твои увлечения! Начинай выбирать, просто напиши /clubs")
     else:
         msg = bot.send_message(tID, incorrect_input_text)
         bot.register_next_step_handler(msg, pick_music)
-
-
-# профиль
-@bot.message_handler(commands=['show_profile'])
-def handle_show_profile(message):
-    tID = message.chat.id
-    bot.send_message(tID, "Информация из профиля:")
-    with connection.cursor() as cursor:
-        cursor.execute("select * from users where tID = \"" + str(tID) + "\"")
-        data = cursor.fetchall()
-    dict = {"1": ", Спорт", "2": ", Технологии IT", "3": ", Рисование", "4": ", Шахматы", "5": ", Музыка"}
-    cat = ""
-    for a in data[0][13]:
-        cat = cat + dict[a]
-
-    info_pro = "Твоё ФИО: " + str(data[0][0]) + " " + str(data[0][1]) + " " + data[0][2] + "\n" + \
-    "Твоя дата рождения: " + data[0][10] + "\n" + \
-    "Номер сертификата ПФДО: " + data[0][9] + "\n" + \
-    "ФИО Родителя: " + str(data[0][3]) + " " + str(data[0][4]) + " " + data[0][5] + "\n" + \
-    "Электронная почта: " + data[0][8] + "\n" + \
-    "Твои интересы: " + cat[2:]
-    bot.send_message(message.chat.id, text=info_pro, reply_markup=take_keyboard('r2'))
-
-
-@bot.message_handler(commands=['edit_profile'])
-def handle_edit_profile(message):
-    pass
-
-
-# контроль ввода
-@bot.message_handler(func=lambda text:True)
-def text_check(message):
-    with connection.cursor() as cur:
-        cur.execute('select * from clubs')
-        db = cur.fetchall()
-    try:
-        if 0 < int(message.text) <= len(db):
-            handle_info(message, int(message.text))
-    except Exception as e:
-        print(e)
-
-
-bot.polling()
