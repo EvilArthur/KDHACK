@@ -17,7 +17,7 @@ connection = pymysql.connect(
     database="botDB"
 )
 incorrect_input_text = "Упс, кажется ты ввел(а) что-то не так. Попробуй ещё раз"
-already_registered_text = ", ты уже зарегистрирован(а) на Госуслугах Дети"
+already_registered_text = ", ты уже зарегистрирован(а) на Госуслугах Дети✅"
 bot = telebot.TeleBot(TOKEN)
 
 # проверка
@@ -97,7 +97,7 @@ def handle_menu(message):
     if name:
         bot.send_message(message.chat.id, text=('Чем займёмся на этот раз, ' + str(name[0][1]) + '?'), reply_markup=take_keyboard('0'))
     else:
-        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
+        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети😔\nНапиши /start")
 
 
 # вывод мероприятий
@@ -130,8 +130,8 @@ def handle_sent_mail(message):
         mail_out(mail_data[0][0], mail_data[0][1], mail_data[0][2], mail_data[0][4], mail_data[0][3], data[0],
                 data[1], distance_calc(mail_data[0][6], mail_data[0][7], data[2], data[3]))
         handle_menu(message)
-    except Exception:
-        print('Не удалось')
+    except Exception as e:
+        print(e)
 
 # фильтрация
 @bot.message_handler(commands=['filter_types'])
@@ -144,7 +144,7 @@ def handle_filter(message):
     with connection.cursor() as cur:
         cur.execute(f'select categories from users where tId = "{message.chat.id}"')
         data = cur.fetchall()
-    print(data[0][0])
+    #print(data[0][0])
     if data[0][0] != None:
         bot.send_message(message.chat.id, 'Доступные фильтры', reply_markup=take_keyboard('f2'))
     else:
@@ -193,15 +193,15 @@ def handle_start(message):
         with connection.cursor() as cursor:
             cursor.execute("insert into users (tID) VALUES (\"" + str(tID) + "\")")
             connection.commit()
-        bot.send_message(tID, "Привет! Добро пожаловать в Госуслуги Дети! "
-                              "Здесь ты сможешь найти кружок или секцию по своим предпочтениям")
+        bot.send_message(tID, "Привет👋\nДобро пожаловать в Госуслуги Дети! "
+                              "Здесь ты сможешь найти кружок или секцию по своим предпочтениям🙋")
         bot.send_message(
             tID, "Чтобы я помог тебе, мне нужно узнать немного инфрормации о тебе")
         msg = bot.send_message(
             tID, "Напиши свою фамилию, имя и отчество через пробел")
         bot.register_next_step_handler(msg, input_name)
     else:
-        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) на Госуслугах Дети. Перейди в меню!",
+        bot.send_message(tID, str(data[0][1]) + ", ты уже зарегистрирован(а) на Госуслугах Дети✅\n",
                          reply_markup=take_keyboard('m1'))
 
 
@@ -222,7 +222,7 @@ def input_name(message):
             connection.commit()
 
         bot.send_message(
-            tID, "Приятно познакомиться, " + data.split(" ")[1])
+            tID, "Приятно познакомиться, " + data.split(" ")[1] +"🙈")
         msg = bot.send_message(
             tID, "Отправь мне свою дату рождения в формате ДД.ММ.ГГГГ")
         bot.register_next_step_handler(msg, input_date_birth)
@@ -236,9 +236,8 @@ def input_date_birth(message):
             cursor.execute("update users set birth_date = \"" +
                            data + "\" where tID = \"" + str(tID) + "\"")
             connection.commit()
-        bot.send_message(tID, "Записал дату рождения")
         msg = bot.send_message(
-            tID, "Если у тебя есть сертификат ПФДО, отправь мне его номер. Если нет, отправь 0")
+            tID, "Если у тебя есть сертификат ПФДО, отправь мне его номер\nЕсли его нет, отправь 0")
         bot.register_next_step_handler(msg, input_pfdo)
     else:
         msg = bot.send_message(tID, incorrect_input_text)
@@ -249,7 +248,7 @@ def input_pfdo(message):
     tID = message.chat.id
     data = message.text
     if data == "0":
-        bot.send_message(tID, "Понял, ставлю прочерк")
+        bot.send_message(tID, "Если захочешь оформить сертификат, переходи по https://pfdo.ru/\nТам тебя ждёт вся информация")
         with connection.cursor() as cursor:
             cursor.execute("update users set cert_number = \"" +
                            "0" + "\" where tID = \"" + str(tID) + "\"")
@@ -320,13 +319,15 @@ def get_location(message):
                            str(posX) + "\" where tID = \"" + str(tID) + "\"")
             cursor.execute("update users set posY = \"" +
                            str(posY) + "\" where tID = \"" + str(tID) + "\"")
+            cursor.execute("update users set parent_phone = \"" +
+                           str(0) + "\" where tID = \"" + str(tID) + "\"")
             connection.commit()
     bot.send_message(tID, "Уже подбираю тебе кружки около твоего дома...")
     with connection.cursor() as cursor:
         cursor.execute("select kid_firstname, kid_lastname from users where tID = \"" + str(tID) + "\"")
         data = cursor.fetchall()
     bot.send_message(
-        tID, "Ура! " + str(data[0][1]) + ", у тебя получилось зарегистрироваться!\nЧтобы начать искать кружки, мне нужно узнать, чем ты увлекаешься\nНапиши /quiz")
+        tID, "Ура! " + str(data[0][1]) + ", у тебя получилось зарегистрироваться🎉\nЧтобы начать искать кружки, мне нужно узнать, чем ты увлекаешься\nНапиши /quiz")
 
 @bot.message_handler(commands=['quiz'])
 def start_quiz(message):
@@ -337,12 +338,12 @@ def start_quiz(message):
     try:
         if not data[0][2]:
             bot.send_message(tID, "Давай узнаем о твоих увлечениях. Отвечай \"да\" или \"нет\"")
-            msg = bot.send_message(tID, "Любишь заниматься спортом?")
+            msg = bot.send_message(tID, "🚴Любишь заниматься спортом?")
             bot.register_next_step_handler(msg, pick_sport)
         elif data[0][2]:
             bot.send_message(tID, data[0][1] + ", ты уже ответил(а) на вопросы, напиши /menu")
     except Exception:
-        bot.send_message(tID, "Ты ещё не зарегистрирован в ГосУслугах Дети, напиши /start")
+        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети😔\nНапиши /start")
 
 def pick_sport(message):
     tID = message.chat.id
@@ -355,6 +356,10 @@ def pick_sport(message):
             msg = bot.send_message(tID, "Как насчёт технологий IT?")
             bot.register_next_step_handler(msg, pick_it)
     elif answer.lower() == "нет":
+        with connection.cursor() as cursor:
+            cursor.execute("update users set categories = \"" +
+                           "" + "\" where tID = \"" + str(tID) + "\"")
+            connection.commit()
         msg = bot.send_message(tID, "Как насчёт технологий IT?")
         bot.register_next_step_handler(msg, pick_it)
     else:
@@ -419,7 +424,7 @@ def pick_music(message):
     if answer.lower() == "да":
         with connection.cursor() as cursor:
             cursor.execute("update users set categories = CONCAT(categories,\"" +
-                           "4" + "\") where tID = \"" + str(tID) + "\"")
+                           "5" + "\") where tID = \"" + str(tID) + "\"")
         connection.commit()
         msg = bot.send_message(tID, "Отлично, я запомнил все твои увлечения! Начинай выбирать, просто напиши /menu")
     elif answer.lower() == "нет":
@@ -455,7 +460,7 @@ def handle_show_profile(message):
             "\nДля редактирования напиши /editprofile"
             bot.send_message(message.chat.id, text=info_pro)
         else:
-            bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
+            bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети😔\nНапиши /start")
 
 @bot.message_handler(commands=['editprofile'])
 def handle_edit_profile(message):
@@ -483,7 +488,7 @@ def handle_edit_profile(message):
         msg = bot.send_message(tID, "Выбери номер строки, которую хочешь изменить")
         bot.register_next_step_handler(msg, pick_line)
     else:
-        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети, напиши /start")
+        bot.send_message(tID, "Ты ещё не зарегистрирован(а) в Госуслугах Дети😔\nНапиши /start")
 
 
 def pick_line(message):
@@ -649,7 +654,9 @@ def text_check(message):
     try:
         if 0 < int(message.text) <= len(db):
             handle_info(message, int(message.text))
+            print(message.text, "----")
     except Exception as e:
+        print("Ошибка при отправке цифры кружка")
         print(e)
 
 
