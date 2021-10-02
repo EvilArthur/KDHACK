@@ -33,5 +33,4 @@ def mail_out(to_email, parent_name, patronymic, child_second_name, child_name, c
 
 
 if __name__ == "__main__":
-
     mail_out('l0tus0rb@yandex.ru', 'Татьяна', 'Викторовна', 'Сулейманов', 'Артур', 'Яндекс.Лицей', '0', 'Ул. Пушкина')
