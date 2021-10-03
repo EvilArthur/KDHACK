@@ -1,1 +1,0 @@
-TOKEN = '2018040395:AAHBdge6sSyCvSFM9mmzn1y4wrmKXbDhXmA'
