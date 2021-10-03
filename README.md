@@ -1,1 +1,2 @@
-This is the source code of Telegram Bot from KDHack Team #13
+Это исходный код проекта телеграм-бота "Госуслуги Дети", позволяющий ребёнку самостоятельно без родителей найти кружок или секцию по его личным интересам
+![shapka](https://user-images.githubusercontent.com/74620760/135766482-ee1b3e08-fe2c-46ca-b261-547ab6a17e71.png)
